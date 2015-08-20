@@ -1,0 +1,21 @@
+{
+  "name": "Fracas",
+  "version": "0.0.1",
+  "description": "Simple RSS management for podcast subscribers",
+  "homepage": "http://github.com/jordanschalm/fracas",
+  "license": "GPL",
+  "repository": {
+    "type": "git",
+    "url": "htps://github.com/jordanschalm/fracas.git"
+  },
+  "author": {
+    "name": "Jordan Schalm",
+    "url": "http://www.jordanschalm.com"
+  },
+  "engine": "node >= 0.12.2",
+  "dependencies": {
+    "express": "^4.12.3",
+    "request": "^2.61.0",
+    "xml2js": "^0.4"
+  }
+}

@@ -1,0 +1,22 @@
+[
+	{
+		"host": "https://www.relay.fm/analogue/feed",
+		"rule": "2",
+		"url": "analogue"
+	},
+	{
+		"host": "https://www.relay.fm/upgrade/feed",
+		"rule": "2",
+		"url": "upgrade"
+	},
+	{
+		"host": "http://www.newyorker.com/feed/podcast/out-loud",
+		"rule": "2",
+		"url": "out_loud"
+	},
+	{
+		"host": "http://www.newyorker.com/feed/podcast/political-scene",
+		"rule": "2",
+		"url": "political_scene"
+	}
+]
