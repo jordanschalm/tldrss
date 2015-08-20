@@ -7,7 +7,7 @@ var FEEDS_PATH = './feeds.json';
 var RESOURCES_ROOT = './resources/';
 var FEED_ROOT = '/feed/'
 if(process.env.PORT) {
-	var DOMAIN = 'https://www.fracast.herokuapp.com';
+	var DOMAIN = 'https://www.rss-slicer.herokuapp.com';
 }
 else {
 	var DOMAIN = 'http://localhost:' + DEFAULT_PORT;
