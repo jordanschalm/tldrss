@@ -1,0 +1,33 @@
+doctype html
+html(lang="en")
+	head
+		meta(charset="UTF-8")
+		meta(name="viewport" content="width=device-width, initial-scale=1")
+		link(rel="stylesheet" type="text/css" href="/resources/site.css")
+		link(rel="icon" type="image/x-icon" href="/resources/favicon.ico")
+		title Home
+	body
+		#header
+			#nav-bar
+				ul#nav-bar
+					li.nav-item
+						a.nav-item#nav-item-home(href='/')
+							| Home
+					li.nav-item
+						a.nav-item#nav-item-faq(href='/faq')
+							| FAQ
+		#page-content
+			h1 Welcome to [name]
+			p Please enter a RSS feed URL with your desired settings below and we'll create a new feed.</br>
+			form(action="/create-feed" method="POST")
+				| Host RSS feed URL: 
+				input(type="text" name="host" value="http://")
+				| </br>
+				| I want every 
+				select(name="rule")
+					option(value="2") 2nd
+					option(value="3") 3rd
+					option(value="4") 4th
+					option(value="5") 5th
+				|  episode.</br>
+				input(type="submit" value="Create Feed")

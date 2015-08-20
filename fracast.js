@@ -2,14 +2,24 @@
 /* CONSTANTS														 */
 /*****************************************/
 
-var DEFAULT_PORT = 3031;
+var DEFAULT_PORT = 3002;
 var FEEDS_PATH = './feeds.json';
+var RESOURCES_ROOT = './resources/';
+var FEED_ROOT = '/feed/'
+if(process.env.PORT) {
+	var DOMAIN = 'https://www.fracast.herokuapp.com';
+}
+else {
+	var DOMAIN = 'localhost:' + DEFAULT_PORT;
+}
 
 /*****************************************/
 /* INITIALIZATION												 */
 /*****************************************/
 
 var fs = require('fs'),
+		bodyParser = require('body-parser'),
+		mime = require('mime'),
 		http = require('http'),
 		express = require('express'),
 		xml2js = require('xml2js'),
@@ -20,6 +30,12 @@ var xmlParser = new xml2js.Parser();
 var xmlBuilder = new xml2js.Builder({cdata: "true"});
 
 var app = express();
+app.set('views', './views');
+app.set('view engine', 'jade');
+app.use(bodyParser.urlencoded({
+	extended: true
+}));
+
 var server = http.createServer(app).listen(process.env.PORT || process.argv[2] || DEFAULT_PORT, function() {
 	console.log('Fracas v' + fracas.version + ' running on port: %s', server.address().port);
 }).on('error', function(err) {
@@ -34,16 +50,53 @@ var feeds = JSON.parse(readFileSync(FEEDS_PATH));
 /* ROUTING															 */
 /*****************************************/
 
-app.get('/:feed', function(req, res) {
+app.get('/', function(req,res) {
+	res.render('home');
+});
+
+app.get('/resources/:resource', function(req, res) {
+	var path = RESOURCES_ROOT + req.params.resource;
+	readFile(path, function(err, data) {
+		if(err) {
+			console.log(err.message);
+			send404(res, err.message);
+		}
+		else {
+			serveData(res, data, mime.lookup(path));
+		}
+	})
+})
+
+app.get('/feed/:feed', function(req, res) {
 	var feed;
 	try {
 		feed = getFeed(req.params.feed)
 	} catch(err) {
 		send404(res, err.message);
 	}
-	request(feed.host, function(err, hostRes, body) {
-		if(!err && hostRes.statusCode === 200) {
-			applyRules(feed, body, res);
+	if(feed) {
+		request(feed.host, function(err, hostRes, body) {
+			if(!err && hostRes.statusCode === 200) {
+				applyRules(feed, body, res);
+			}
+		});
+	}
+});
+
+app.post('/create-feed', function(req, res) {
+	var host = req.body.host;
+	var rule = req.body.rule;
+	var ID = String(feeds.length);
+	feeds[feeds.length] = {
+		host: host,
+		rule: rule,
+		ID: ID
+	};
+	var url = DOMAIN + FEED_ROOT + ID;
+	res.render('create-feed', {url: url});
+	writeFile(FEEDS_PATH, JSON.stringify(feeds, null, ' '), function(err, written, string) {
+		if(err) {
+			console.log(err.message);
 		}
 	});
 });
@@ -62,7 +115,7 @@ function getFeed(feed) {
 			return feeds[i];
 		}
 	}
-	throw new Error('No stored feeds with ID ' + feed);
+	throw new Error('No stored feeds with ID: ' + feed);
 }
 
 /*	Sends a 404 HTTP response.
@@ -93,8 +146,10 @@ function serveData(res, data, mimeType) {
 function applyRules(feed, body, res) {
 	xmlParser.parseString(body, function(err, result) {
 		var numEpisodes = result.rss.channel[0].item.length;
-		for(var index = 0; index < numEpisodes; index += Number(feed.rule)) {
-			delete result.rss.channel[0].item[index];
+		for(var index = 0; index < numEpisodes; index++) {
+			if(index % Number(feed.rule) != 0) {
+				delete result.rss.channel[0].item[index];
+			}
 		}
 		serveData(res, xmlBuilder.buildObject(result), "text/xml");
 	});
@@ -155,7 +210,7 @@ function readFile(path, callback) {
  *
  *	path, data (String)
  */
-function writeFile(path, data) {
+function writeFile(path, data, callback) {
 	fs.open(path, 'w', function(err, fd) {
 		fs.write(fd, data, function(err, written, string) {
 			if(err) {
