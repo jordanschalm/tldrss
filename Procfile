@@ -1,1 +1,1 @@
-web: node fracast.js
+web: node rss-slicer.js

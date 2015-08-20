@@ -1,12 +1,11 @@
 {
-  "name": "Fracas",
-  "version": "0.0.1",
+  "name": "RSS Slicer",
+  "version": "0.1.0",
   "description": "Simple RSS management for podcast subscribers",
   "homepage": "http://github.com/jordanschalm/fracas",
-  "license": "GPL",
   "repository": {
     "type": "git",
-    "url": "htps://github.com/jordanschalm/fracas.git"
+    "url": "htps://github.com/jordanschalm/rss-slicer.git"
   },
   "author": {
     "name": "Jordan Schalm",

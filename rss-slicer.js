@@ -10,7 +10,7 @@ if(process.env.PORT) {
 	var DOMAIN = 'https://www.fracast.herokuapp.com';
 }
 else {
-	var DOMAIN = 'localhost:' + DEFAULT_PORT;
+	var DOMAIN = 'http://localhost:' + DEFAULT_PORT;
 }
 
 /*****************************************/
@@ -32,19 +32,24 @@ var xmlBuilder = new xml2js.Builder({cdata: "true"});
 var app = express();
 app.set('views', './views');
 app.set('view engine', 'jade');
-app.use(bodyParser.urlencoded({
-	extended: true
-}));
+app.use(bodyParser.urlencoded({extended: true}));
 
 var server = http.createServer(app).listen(process.env.PORT || process.argv[2] || DEFAULT_PORT, function() {
-	console.log('Fracas v' + fracas.version + ' running on port: %s', server.address().port);
+	console.log('RSS Slicer v' + fracas.version + ' running on port: %s', server.address().port);
 }).on('error', function(err) {
 	if(err.code === 'EADDRINUSE') {
 		console.log('Port ' + (process.env.PORT || process.argv[2] || ALT_PORT) + ' is in use. Exiting...');
 	}
 });
 
-var feeds = JSON.parse(readFileSync(FEEDS_PATH));
+try {
+	var feeds = JSON.parse(readFileSync(FEEDS_PATH));
+} catch(err) {
+	console.log(err.message);
+	if(!feeds) {
+		var feeds = {};
+	}
+}
 
 /*****************************************/
 /* ROUTING															 */
@@ -109,13 +114,13 @@ app.post('/create-feed', function(req, res) {
  *	with the given feed ID (URL slug)
  *	feed (String)
  */
-function getFeed(feed) {
+function getFeed(feedID) {
 	for(var i = 0; i < feeds.length; i++) {
-		if(feed === feeds[i].ID) {
+		if(feedID === feeds[i].ID) {
 			return feeds[i];
 		}
 	}
-	throw new Error('No stored feeds with ID: ' + feed);
+	throw new Error('No stored feeds with ID: ' + feedID);
 }
 
 /*	Sends a 404 HTTP response.
