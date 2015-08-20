@@ -55,7 +55,8 @@ a:active.nav-item {
 	background: #5c85d6;
 }
 
-body#home, a#nav-item-home {
+body#home a#nav-item-home,
+body#info a#nav-item-info {
 	background: #5c85d6;
 }
 

@@ -55,9 +55,13 @@ try {
 /* ROUTING															 */
 /*****************************************/
 
-app.get('/', function(req,res) {
+app.get('/', function(req, res) {
 	res.render('home');
 });
+
+app.get('/info', function(req, res) {
+	res.render('info');
+})
 
 app.get('/resources/:resource', function(req, res) {
 	var path = RESOURCES_ROOT + req.params.resource;
