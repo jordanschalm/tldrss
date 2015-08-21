@@ -1,27 +1,3 @@
 [
- {
-  "host": "http://www.relay.fm/upgrade/feed",
-  "rule": "2",
-  "ID": "0"
- },
- {
-  "host": "http://www.relay.fm/upgrade/feed",
-  "rule": "2",
-  "ID": "1"
- },
- {
-  "host": "http://www.relay.fm/upgrade/feed",
-  "rule": "3",
-  "ID": "2"
- },
- {
-  "host": "http://www.relay.fm/analogue/feed",
-  "rule": "2",
-  "ID": "GaCKW2"
- },
- {
-  "host": "http://www.google.ca",
-  "rule": "2",
-  "ID": "6LOhnD"
- }
+
 ]
