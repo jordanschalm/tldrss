@@ -18,6 +18,11 @@ html(lang="en")
 							| FAQ
 		#page-content
 			h1 Success!
-			p Your custom link is 
-				a(href=url) 
-					= url
+			if(feedAlreadyExists)
+				p This feed has already been created and is available at 
+					a(href=url)
+						= url
+			else
+				p Your custom feed is available at 
+					a(href=url)
+						= url

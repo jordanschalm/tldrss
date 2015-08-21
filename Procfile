@@ -1,1 +1,1 @@
-web: node rss-slicer.js
+web: node tldrss.js

@@ -3,15 +3,15 @@
 /*****************************************/
 
 var DEFAULT_PORT = 3002;
+var ID_LENGTH = 6;
 var FEEDS_PATH = './feeds.json';
 var RESOURCES_ROOT = './resources/';
 var FEED_ROOT = '/feed/'
-if(process.env.PORT) {
+
+if(process.env.PORT)
 	var DOMAIN = 'https://www.rss-slicer.herokuapp.com';
-}
-else {
+else
 	var DOMAIN = 'http://localhost:' + DEFAULT_PORT;
-}
 
 /*****************************************/
 /* INITIALIZATION												 */
@@ -24,7 +24,7 @@ var fs = require('fs'),
 		express = require('express'),
 		xml2js = require('xml2js'),
 		request = require('request'),
-		fracas = require('./package.json');
+		rss_slicer = require('./package.json');
 
 var xmlParser = new xml2js.Parser();
 var xmlBuilder = new xml2js.Builder({cdata: "true"});
@@ -34,8 +34,9 @@ app.set('views', './views');
 app.set('view engine', 'jade');
 app.use(bodyParser.urlencoded({extended: true}));
 
-var server = http.createServer(app).listen(process.env.PORT || process.argv[2] || DEFAULT_PORT, function() {
-	console.log('RSS Slicer v' + fracas.version + ' running on port: %s', server.address().port);
+var server = http.createServer(app)
+.listen(process.env.PORT || process.argv[2] || DEFAULT_PORT, function() {
+	console.log('TLDRSS v' + rss_slicer.version + ' running on port: %s', server.address().port);
 }).on('error', function(err) {
 	if(err.code === 'EADDRINUSE') {
 		console.log('Port ' + (process.env.PORT || process.argv[2] || ALT_PORT) + ' is in use. Exiting...');
@@ -61,6 +62,15 @@ app.get('/', function(req, res) {
 
 app.get('/info', function(req, res) {
 	res.render('info');
+});
+
+/*	Special 'hidden' routing method to check 
+ *	on the list of created feeds
+ */
+app.get('/master', function(req, res) {
+	res.writeHead(200, {"Content-type": "text/json"});
+	res.write(JSON.stringify(feeds, null, ' '));
+	res.end();
 })
 
 app.get('/resources/:resource', function(req, res) {
@@ -76,10 +86,10 @@ app.get('/resources/:resource', function(req, res) {
 	})
 })
 
-app.get('/feed/:feed', function(req, res) {
+app.get('/feed/:ID', function(req, res) {
 	var feed;
 	try {
-		feed = getFeed(req.params.feed)
+		feed = getFeedByID(req.params.ID)
 	} catch(err) {
 		send404(res, err.message);
 	}
@@ -95,14 +105,21 @@ app.get('/feed/:feed', function(req, res) {
 app.post('/create-feed', function(req, res) {
 	var host = req.body.host;
 	var rule = req.body.rule;
-	var ID = String(feeds.length);
-	feeds[feeds.length] = {
-		host: host,
-		rule: rule,
-		ID: ID
-	};
-	var url = DOMAIN + FEED_ROOT + ID;
-	res.render('create-feed', {url: url});
+	var feedExists = getFeedByHost(host, rule);
+	if(feedExists) {
+		var url = DOMAIN + FEED_ROOT + feedExists.ID
+		feedExists = true;
+	}
+	else {
+		var ID = generateID();
+		feeds[feeds.length] = {
+			host: host,
+			rule: rule,
+			ID: ID
+		};
+		var url = DOMAIN + FEED_ROOT + ID;
+	}
+	res.render('create-feed', {url: url, feedExists: feedExists});
 	writeFile(FEEDS_PATH, JSON.stringify(feeds, null, ' '), function(err, written, string) {
 		if(err) {
 			console.log(err.message);
@@ -118,13 +135,39 @@ app.post('/create-feed', function(req, res) {
  *	with the given feed ID (URL slug)
  *	feed (String)
  */
-function getFeed(feedID) {
+function getFeedByID(feedID) {
 	for(var i = 0; i < feeds.length; i++) {
 		if(feedID === feeds[i].ID) {
 			return feeds[i];
 		}
 	}
 	throw new Error('No stored feeds with ID: ' + feedID);
+}
+
+/*	Determines whether a feed with the given
+ *	attributes already exists.
+ *
+ *	hostURL (String)
+ *	rule (Number)
+ */
+function getFeedByHost(hostURL, rule) {
+	for(var i = 0; i < feeds.length; i++) {
+		if(hostURL === feeds[i].host && rule === feeds[i].rule) {
+			return feeds[i];
+		}
+	}
+	return false;
+}
+
+/*	Generates a pseudo-random ID.
+ */
+function generateID() {
+	var chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
+	var ID = '';
+	for(var index = 0; index < ID_LENGTH; index++) {
+		ID = ID.concat(chars[Math.floor(Math.random() * chars.length)]);
+	}
+	return ID;
 }
 
 /*	Sends a 404 HTTP response.

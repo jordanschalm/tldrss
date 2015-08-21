@@ -1,11 +1,11 @@
 {
-  "name": "rss-slicer",
+  "name": "tldrss",
   "version": "0.1.0",
   "description": "Simple RSS management for podcast subscribers",
-  "homepage": "http://github.com/jordanschalm/fracas",
+  "homepage": "http://github.com/jordanschalm/tldrss",
   "repository": {
     "type": "git",
-    "url": "htps://github.com/jordanschalm/rss-slicer.git"
+    "url": "htps://github.com/jordanschalm/tldrss.git"
   },
   "author": {
     "name": "Jordan Schalm",
