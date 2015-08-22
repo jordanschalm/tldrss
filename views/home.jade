@@ -7,26 +7,31 @@ html(lang="en")
 		link(rel="icon" type="image/x-icon" href="/resources/favicon.ico")
 		title Home
 	body#home
-		#header
-			#nav-bar
-				ul#nav-bar
-					li.nav-item
-						a.nav-item#nav-item-home(href='/')
-							| HOME
-					li.nav-item
-						a.nav-item#nav-item-info(href='/info')
-							| INFO
 		#page-content
 			h1 Welcome
-			p Enter an RSS feed URL with your desired settings below and we'll create a custom feed.</br>
-			form(action="/create-feed" method="POST")
-				| Host RSS feed URL: 
-				input(type="text" name="host" value="http://")
-				| </br>I want every 
-				select(name="rule")
-					option(value="2") 2nd
-					option(value="3") 3rd
-					option(value="4") 4th
-					option(value="5") 5th
-				|  episode.</br>
-				input(type="submit" value="Create Feed")
+			#home-text-container
+				p </br>Enter an RSS feed URL with your desired settings below and we'll create a custom feed.</br>
+				form(action="/create-feed" method="POST")
+					| Host RSS feed URL: 
+					input#host-feed-input(type="text" name="host" placeholder="http://..." autofocus="true")
+					| </br>I want every 
+					select(name="rule")
+						option(value="2") 2nd
+						option(value="3") 3rd
+						option(value="4") 4th
+						option(value="5") 5th
+					|  episode.</br></br>
+					input(type="submit" value="Create Feed")
+				p </br>
+			h1 What Is This?
+			#home-text-container
+				p </br>TLDRSS is a web utility that creates custom RSS feeds allowing users to selectively subscribe to only a subset of items, the primary use-case being podcast subscriptions. For example, rather than unsubscribing from one feed, you can create two custom feeds set to contain every 2nd episode. This creates less overall volume and allows for greater content diversity.
+//-	#header
+//-			#nav-bar
+//- 			ul#nav-bar
+//- 				li.nav-item
+//- 					a.nav-item#nav-item-home(href='/')
+//- 						| HOME
+//- 				li.nav-item
+//- 					a.nav-item#nav-item-info(href='/info')
+//- 						| INFO

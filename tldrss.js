@@ -60,10 +60,6 @@ app.get('/', function(req, res) {
 	res.render('home');
 });
 
-app.get('/info', function(req, res) {
-	res.render('info');
-});
-
 /*	Special 'hidden' routing method to check 
  *	on the list of created feeds
  */
@@ -106,30 +102,49 @@ app.post('/create-feed', function(req, res) {
 	var host = req.body.host;
 	var rule = req.body.rule;
 	var feedExists = getFeedByHost(host, rule);
+	var hostFeedIsValid = true;
 	if(feedExists) {
 		var url = DOMAIN + FEED_ROOT + feedExists.ID
 		feedExists = true;
+		renderCreateFeedPage(res, url, feedExists, hostFeedIsValid);
 	}
 	else {
-		var ID = generateID();
-		feeds[feeds.length] = {
-			host: host,
-			rule: rule,
-			ID: ID
-		};
-		var url = DOMAIN + FEED_ROOT + ID;
+		isValidRSSFeed(host, function(isValidRSSFeed) {
+			if(isValidRSSFeed) {
+				feedExists = false;
+				hostFeedIsValid = true;
+				var ID = generateID();
+				feeds[feeds.length] = {
+					host: host,
+					rule: rule,
+					ID: ID
+				};
+				var url = DOMAIN + FEED_ROOT + ID;
+			}
+			else {
+				var hostFeedIsValid = false;
+			}
+			renderCreateFeedPage(res, url, feedExists, hostFeedIsValid);
+		});
 	}
-	res.render('create-feed', {url: url, feedExists: feedExists});
+});
+
+app.get('/*', function(req, res) {
+	send404(res);
+})
+
+/*****************************************/
+/* HELPER FUNCTIONS											 */
+/*****************************************/
+
+function renderCreateFeedPage(res, url, feedExists, hostFeedIsValid) {
+	res.render('create-feed', {url: url, feedExists: feedExists, hostFeedIsValid: hostFeedIsValid});
 	writeFile(FEEDS_PATH, JSON.stringify(feeds, null, ' '), function(err, written, string) {
 		if(err) {
 			console.log(err.message);
 		}
 	});
-});
-
-/*****************************************/
-/* HELPER FUNCTIONS											 */
-/*****************************************/
+}
 
 /*	Finds a feed object in the feeds array
  *	with the given feed ID (URL slug)
@@ -159,6 +174,18 @@ function getFeedByHost(hostURL, rule) {
 	return false;
 }
 
+function isValidRSSFeed(feed, callback) {
+	request(feed, function(err, hostRes, body) {
+		if(!err && hostRes.statusCode === 200) {
+			console.log('search: ' + hostRes.headers['content-type'].search('xml'));
+			if(hostRes.headers['content-type'].search('xml') >= 0) {
+				callback(true);
+			}
+		}
+		callback(false);
+	});
+}
+
 /*	Generates a pseudo-random ID.
  */
 function generateID() {
@@ -174,7 +201,12 @@ function generateID() {
  */
 function send404(res, message) {
 	res.writeHead(404, {"Content-type" : "text/plain"});
-	res.write(("Error 404: " + message) || "Error 404: Resource not found.");
+	if(message) {
+		res.write("Error 404: " + message);
+	}
+	else {
+		res.write("Error 404: Resource not found.");
+	}
 	res.end();
 }
 

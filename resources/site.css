@@ -7,97 +7,93 @@ html, body {
 	height: 100%;
 }
 
-div#header {
-	width: 100%;	
-	height: 80px;
-	position: fixed;
-	background: #3366CC;
-	opacity: 0.8;
-}
-
 div#page-content {
-	padding-top: 20%;
 	margin: 0 auto;
 	height: auto;
-	width: 60%;
+	width: 100%;
 }
 
-div#nav-bar {
-	float: left;
+div#home-text-container {
+	text-align: center;
+	margin: 0 auto;
 }
 
-ul#nav-bar {
-	font-size: 0;
-	list-style-type: none;
-	text-align: left;
-	padding-top: 23px;
+@media(min-width: 720px) {
+	div#home-text-container {
+		width: 60%;
+	}
+	
+	h1 {
+		font-size: 48px;
+	}
+	
+	p, form {
+		text-align: center;
+		font-size: 18px;
+	}
+	
+	input, select {
+		font-size: 18px;
+	}
 }
 
-li.nav-item {
-	font-size: 28px;
-	font-family: "Verdana", "Geneve", sans-serif;
-	color: #ffffff;
-	display: inline;
-}
-
-a.nav-item {
-	color: #ffffff;
-	text-decoration: none;
-	transition: 0.25s;
-	padding: 23px 16px;
-}
-
-a:hover.nav-item {
-	background: #4775d1;
-}
-
-a:active.nav-item {
-	background: #5c85d6;
-}
-
-body#home a#nav-item-home,
-body#info a#nav-item-info {
-	background: #5c85d6;
+@media(max-width: 720px) {
+	div#home-text-container {
+		width: 90%;
+	}
+	
+	h1 {
+		font-size: 42px;
+	}
+	
+	p, form {
+		text-align: left;
+		font-size: 18px;
+	}
+	
+	input, select {
+		font-size: 16px;
+	}
 }
 
 h1 {
-	font-size: 36px;
 	font-family: "Verdana", "Georgia", sans-serif;
 	font-weight: lighter;
 	text-align: center;
-	color: #999999;
-	padding-bottom: 1em;
+	color: #ffffff;
+	padding-bottom: 0.5em;
+	padding-top: 0.5em;
+	background: #75AA9A;
 }
 
 p {
-	font-size: 16px;
 	font-family: "Verdana", "Georgia", sans-serif;
 	font-weight: lighter;
-	text-align: center;
-	line-height: 150%;
+	line-height: 175%;
 	color: #454545;
 	padding-bottom: 1em;
 }
 
 form {
-	font-size: 16px;
 	font-family: "Verdana", "Georgia", sans-serif;
 	font-weight: lighter;
-	text-align: center;
 	line-height: 175%;
 	color: #454545;
 }
 
 input {
-	font-size: 14px;
 	font-family: "Verdana", "Georgia", sans-serif;
 	font-weight: lighter;
 	text-align: left;
 	color: #454545;
 }
 
+input#host-feed-input {
+	box-sizing: border-box;
+	width: 40%;
+}
+
 select {
-	font-size: 16px;
 	font-family: "Verdana", "Georgia", sans-serif;
 	font-weight: lighter;
 	text-align: left;
