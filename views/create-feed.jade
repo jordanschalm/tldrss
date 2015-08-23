@@ -11,11 +11,11 @@ html(lang="en")
 			title Try Again...
 	body
 		#page-content
+			if(hostFeedIsValid)
+				h1 Success!
+			else
+				h1 Oops!
 			#home-text-container
-				if(hostFeedIsValid)
-					h1 Success!
-				else
-					h1 Oops!
 				p </br>
 				if(feedExists)
 					p This feed has already been created and is available at 
