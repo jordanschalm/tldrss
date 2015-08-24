@@ -24,7 +24,7 @@ var fs = require('fs'),
 		express = require('express'),
 		xml2js = require('xml2js'),
 		request = require('request'),
-		rss_slicer = require('./package.json');
+		tldrss = require('./package.json');
 
 var xmlParser = new xml2js.Parser();
 var xmlBuilder = new xml2js.Builder({cdata: "true"});
@@ -36,7 +36,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 
 var server = http.createServer(app)
 .listen(process.env.PORT || process.argv[2] || DEFAULT_PORT, function() {
-	console.log('TLDRSS v' + rss_slicer.version + ' running on port: %s', server.address().port);
+	console.log('TLDRSS v' + tldrss.version + ' running on port: %s', server.address().port);
 }).on('error', function(err) {
 	if(err.code === 'EADDRINUSE') {
 		console.log('Port ' + (process.env.PORT || process.argv[2] || ALT_PORT) + ' is in use. Exiting...');
