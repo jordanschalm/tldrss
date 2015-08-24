@@ -47,8 +47,9 @@ try {
 	var feeds = JSON.parse(readFileSync(FEEDS_PATH));
 } catch(err) {
 	console.log(err.message);
+	console.log("Could not load feeds");
 	if(!feeds) {
-		var feeds = {};
+		//var feeds = {};
 	}
 }
 
