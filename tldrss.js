@@ -4,7 +4,6 @@
 
 var DEFAULT_PORT = 3002;
 var ID_LENGTH = 6;
-var FEEDS_PATH = './feeds.json';
 var RESOURCES_ROOT = './resources/';
 var FEED_ROOT = '/feed/'
 
@@ -18,17 +17,20 @@ else
 /*****************************************/
 
 var fs = require('fs'),
-		bodyParser = require('body-parser'),
+		url = require('url'),
 		mime = require('mime'),
 		http = require('http'),
 		express = require('express'),
+		bodyParser = require('body-parser'),
 		xml2js = require('xml2js'),
 		request = require('request'),
+		redis = require('redis'),
 		tldrss = require('./package.json');
 
 var xmlParser = new xml2js.Parser();
 var xmlBuilder = new xml2js.Builder({cdata: "true"});
 
+// Set up Express to use Jade to render views
 var app = express();
 app.set('views', './views');
 app.set('view engine', 'jade');
@@ -43,15 +45,10 @@ var server = http.createServer(app)
 	}
 });
 
-try {
-	var feeds = JSON.parse(readFileSync(FEEDS_PATH));
-} catch(err) {
-	console.log(err.message);
-	console.log("Could not load feeds");
-	if(!feeds) {
-		//var feeds = {};
-	}
-}
+// Create Redis client and connect to Heroku Redis datastore
+var redisURL = url.parse(process.env.REDIS_URL);
+var redisClient = redis.createClient(redisURL.port, redisURL.hostname);
+redisClient.auth(redisURL.auth.split(":")[1]);
 
 /*****************************************/
 /* ROUTING															 */
@@ -61,15 +58,17 @@ app.get('/', function(req, res) {
 	res.render('home');
 });
 
-/*	Special 'hidden' routing method to check 
- *	on the list of created feeds
- */
-app.get('/master', function(req, res) {
-	res.writeHead(200, {"Content-type": "text/json"});
-	res.write(JSON.stringify(feeds, null, ' '));
-	res.end();
-})
+// /*	Special 'hidden' routing method to check
+//  *	on the list of created feeds
+//  */
+// app.get('/master', function(req, res) {
+// 	res.writeHead(200, {"Content-type": "text/json"});
+// 	res.write(JSON.stringify(feeds, null, ' '));
+// 	res.end();
+// })
 
+/* 	Path for things like favicon and site.css
+ */
 app.get('/resources/:resource', function(req, res) {
 	var path = RESOURCES_ROOT + req.params.resource;
 	readFile(path, function(err, data) {
@@ -83,53 +82,63 @@ app.get('/resources/:resource', function(req, res) {
 	})
 })
 
-app.get('/feed/:ID', function(req, res) {
-	var feed;
-	try {
-		feed = getFeedByID(req.params.ID)
-	} catch(err) {
-		send404(res, err.message);
-	}
-	if(feed) {
-		request(feed.host, function(err, hostRes, body) {
-			if(!err && hostRes.statusCode === 200) {
-				applyRules(feed, body, res);
-			}
-		});
-	}
+/* 	Path to access previously created feeds
+ */
+app.get('/feed/:feedID', function(req, res) {
+	redisClient.hgetall(feedID, function(err, reply) {
+		if(err) {
+			console.log(err.message)
+			send404(res);
+		}
+		if(reply) {
+			request(reply.host, function(err, hostRes, body) {
+				if(!err && hostRes.statusCode === 200) {
+					applyRules(res, feed, body, function(feedXML) {
+						serveData(res, feedXML, "text/xml");
+					});
+				}
+				else {
+					send404(res);
+				}
+			});
+		}
+	});
 });
 
 app.post('/create-feed', function(req, res) {
 	var host = req.body.host;
 	var rule = req.body.rule;
-	var feedExists = getFeedByHost(host, rule);
-	var hostFeedIsValid = true;
-	if(feedExists) {
-		var url = DOMAIN + FEED_ROOT + feedExists.ID
-		feedExists = true;
-		renderCreateFeedPage(res, url, feedExists, hostFeedIsValid);
-	}
-	else {
-		isValidRSSFeed(host, function(isValidRSSFeed) {
-			if(isValidRSSFeed) {
-				feedExists = false;
-				hostFeedIsValid = true;
-				var ID = generateID();
-				feeds[feeds.length] = {
-					host: host,
-					rule: rule,
-					ID: ID
-				};
-				var url = DOMAIN + FEED_ROOT + ID;
-			}
-			else {
-				var hostFeedIsValid = false;
-			}
-			renderCreateFeedPage(res, url, feedExists, hostFeedIsValid);
-		});
-	}
+	var feedID = getFeedID(host);
+	redisClient.hgetall(feedID, function(err, reply) {
+		if(err) {
+			console.log(err.message);
+		}
+		if(reply) {
+			// The key was found and the feed already exists
+			var feedURL = DOMAIN + FEED_ROOT + feedID;
+			renderCreateFeedPage(res, feedURL, true, true);
+		}
+		else {
+			// The key was not found and we'll create the feed
+			isValidRSSFeed(host, function(isValid) {
+				if(isValid) {
+					redisClient.hmset(feedID, {
+						'host': host,
+						'rule': rule
+					});
+					var feedURL = DOMAIN + FEED_ROOT + feedID;
+					renderCreateFeedPage(res, feedURL, false, true);
+				}
+				else {
+					renderCreateFeedPage(res, false, false, false);
+				}
+			});
+		}
+	});
 });
 
+/*	Send a 404 response for any unrecognized paths
+ */
 app.get('/*', function(req, res) {
 	send404(res);
 })
@@ -138,47 +147,17 @@ app.get('/*', function(req, res) {
 /* HELPER FUNCTIONS											 */
 /*****************************************/
 
-function renderCreateFeedPage(res, url, feedExists, hostFeedIsValid) {
-	res.render('create-feed', {url: url, feedExists: feedExists, hostFeedIsValid: hostFeedIsValid});
-	writeFile(FEEDS_PATH, JSON.stringify(feeds, null, ' '), function(err, written, string) {
-		if(err) {
-			console.log(err.message);
-		}
-	});
+function renderCreateFeedPage(res, feedURL, feedExists, hostFeedIsValid) {
+	res.render('create-feed', {url: feedURL, feedExists: feedExists, hostFeedIsValid: hostFeedIsValid});
 }
 
-/*	Finds a feed object in the feeds array
- *	with the given feed ID (URL slug)
- *	feed (String)
+/*	Checks to see whether an RSS feed responds
+ *	with an XML file.
+ *	hostURL (String) - URL of the host feed
  */
-function getFeedByID(feedID) {
-	for(var i = 0; i < feeds.length; i++) {
-		if(feedID === feeds[i].ID) {
-			return feeds[i];
-		}
-	}
-	throw new Error('No stored feeds with ID: ' + feedID);
-}
-
-/*	Determines whether a feed with the given
- *	attributes already exists.
- *
- *	hostURL (String)
- *	rule (Number)
- */
-function getFeedByHost(hostURL, rule) {
-	for(var i = 0; i < feeds.length; i++) {
-		if(hostURL === feeds[i].host && rule === feeds[i].rule) {
-			return feeds[i];
-		}
-	}
-	return false;
-}
-
-function isValidRSSFeed(feed, callback) {
-	request(feed, function(err, hostRes, body) {
+function checkRSSFeed(hostURL, callback) {
+	request(hostURL, function(err, hostRes, body) {
 		if(!err && hostRes.statusCode === 200) {
-			console.log('search: ' + hostRes.headers['content-type'].search('xml'));
 			if(hostRes.headers['content-type'].search('xml') >= 0) {
 				callback(true);
 			}
@@ -187,15 +166,25 @@ function isValidRSSFeed(feed, callback) {
 	});
 }
 
-/*	Generates a pseudo-random ID.
+/* Takes a host URL as input and hashes
+ * it to create a feedID. Note that the 
+ * the feedID is not guaranteed to be
+ * unique.
+ *	
+ * hostURL (String)
  */
-function generateID() {
-	var chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
-	var ID = '';
-	for(var index = 0; index < ID_LENGTH; index++) {
-		ID = ID.concat(chars[Math.floor(Math.random() * chars.length)]);
+function getFeedID(hostURL) {
+	var feedIDAllowedChars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMOPQRSTUVWXYZ';
+	var charLength = hostURL.length / ID_LENGTH;
+	var feedID = '';
+	for(var i = 0; i < ID_LENGTH; i++) {
+		var charCodeSum = 0;
+		for(var j = i; j < hostURL.length; j+= charLength) {
+			charCodeSum += hostURL.charCodeAt(j);
+		}
+		feedID.concat(charCode % feedIDAllowedChars.length);
 	}
-	return ID;
+	return feedID;
 }
 
 /*	Sends a 404 HTTP response.
@@ -227,8 +216,10 @@ function serveData(res, data, mimeType) {
  *	feed (Object)
  *	body (String) - unaltered XML content of the
  *									host feed
+ *	callback (fn(String)) - parameter is the 
+ *		altered XML text
  */
-function applyRules(feed, body, res) {
+function applyRules(res, feed, body, callback) {
 	xmlParser.parseString(body, function(err, result) {
 		var numEpisodes = result.rss.channel[0].item.length;
 		for(var index = 0; index < numEpisodes; index++) {
@@ -236,34 +227,13 @@ function applyRules(feed, body, res) {
 				delete result.rss.channel[0].item[index];
 			}
 		}
-		serveData(res, xmlBuilder.buildObject(result), "text/xml");
+		callback(xmlBuilder.buildObject(result));
 	});
 }
 
 /*****************************************/
 /* FILE I/O															 */
 /*****************************************/
-
-/*	Reads the file at the specified path, if it exists, and returns
- *	the contents of the file. This function is used for initialization
- *	when we want things to happen synchronously.
- *
- *	path (String)
- */
-function readFileSync(path) {
-	if(fs.existsSync(path)) {
-		try {
-			var data = fs.readFileSync(path);
-			return data;
-		} 
-		catch (err) {
-			throw err;
-		}
-	}
-	else {
-		throw new Error("The file at path " + path + " does not exist.");
-	}
-}
 
 /*	Reads the file at the specified path, if it exists, and returns
  *	the contents of the file. This function is used after
@@ -288,22 +258,5 @@ function readFile(path, callback) {
 		else {
 			callback(new Error("The file at path " + path + " does not exist."));
 		}
-	});
-}
-
-/*	Writes a file to disk.
- *
- *	path, data (String)
- */
-function writeFile(path, data, callback) {
-	fs.open(path, 'w', function(err, fd) {
-		fs.write(fd, data, function(err, written, string) {
-			if(err) {
-				callback(err, written, string);
-			}
-			else {
-				callback(null, written, string);
-			}
-		});
 	});
 }
