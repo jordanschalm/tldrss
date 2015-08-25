@@ -120,7 +120,7 @@ app.post('/create-feed', function(req, res) {
 		}
 		else {
 			// The key was not found and we'll create the feed
-			isValidRSSFeed(host, function(isValid) {
+			checkRSSFeed(host, function(isValid) {
 				if(isValid) {
 					redisClient.hmset(feedID, {
 						'host': host,
