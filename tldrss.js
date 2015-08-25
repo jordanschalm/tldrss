@@ -60,15 +60,6 @@ app.get('/', function(req, res) {
 	res.render('home');
 });
 
-// /*	Special 'hidden' routing method to check
-//  *	on the list of created feeds
-//  */
-// app.get('/master', function(req, res) {
-// 	res.writeHead(200, {"Content-type": "text/json"});
-// 	res.write(JSON.stringify(feeds, null, ' '));
-// 	res.end();
-// })
-
 /* 	Path for things like favicon and site.css
  */
 app.get('/resources/:resource', function(req, res) {
@@ -95,7 +86,7 @@ app.get('/feed/:feedID', function(req, res) {
 		if(reply) {
 			request(reply.host, function(err, hostRes, body) {
 				if(!err && hostRes.statusCode === 200) {
-					applyRules(res, feed, body, function(feedXML) {
+					applyRules(res, body, function(feedXML) {
 						serveData(res, feedXML, "text/xml");
 					});
 				}
@@ -221,7 +212,7 @@ function serveData(res, data, mimeType) {
  *	callback (fn(String)) - parameter is the 
  *		altered XML text
  */
-function applyRules(res, feed, body, callback) {
+function applyRules(res, body, callback) {
 	xmlParser.parseString(body, function(err, result) {
 		var numEpisodes = result.rss.channel[0].item.length;
 		for(var index = 0; index < numEpisodes; index++) {
