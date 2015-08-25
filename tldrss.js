@@ -46,9 +46,9 @@ var server = http.createServer(app)
 });
 
 // Create Redis client and connect to Heroku Redis datastore
-// var redisURL = url.parse(process.env.REDIS_URL);
-// var redisClient = redis.createClient(redisURL.port, redisURL.hostname);
-// redisClient.auth(redisURL.auth.split(":")[1]);
+var redisURL = url.parse(process.env.REDIS_URL);
+var redisClient = redis.createClient(redisURL.port, redisURL.hostname);
+redisClient.auth(redisURL.auth.split(":")[1]);
 
 console.log("feedID: " + getFeedID("https://www.relay.fm/analogue/feed"));
 
