@@ -86,7 +86,7 @@ app.get('/feed/:feedID', function(req, res) {
 		if(reply) {
 			request(reply.host, function(err, hostRes, body) {
 				if(!err && hostRes.statusCode === 200) {
-					applyRules(res, body, function(feedXML) {
+					applyRules(res, reply.rule, body, function(feedXML) {
 						serveData(res, feedXML, "text/xml");
 					});
 				}
@@ -212,11 +212,11 @@ function serveData(res, data, mimeType) {
  *	callback (fn(String)) - parameter is the 
  *		altered XML text
  */
-function applyRules(res, body, callback) {
+function applyRules(res, rule, body, callback) {
 	xmlParser.parseString(body, function(err, result) {
 		var numEpisodes = result.rss.channel[0].item.length;
 		for(var index = 0; index < numEpisodes; index++) {
-			if(index % Number(feed.rule) != 0) {
+			if(index % Number(rule) != 0) {
 				delete result.rss.channel[0].item[index];
 			}
 		}
