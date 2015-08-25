@@ -46,9 +46,11 @@ var server = http.createServer(app)
 });
 
 // Create Redis client and connect to Heroku Redis datastore
-var redisURL = url.parse(process.env.REDIS_URL);
-var redisClient = redis.createClient(redisURL.port, redisURL.hostname);
-redisClient.auth(redisURL.auth.split(":")[1]);
+// var redisURL = url.parse(process.env.REDIS_URL);
+// var redisClient = redis.createClient(redisURL.port, redisURL.hostname);
+// redisClient.auth(redisURL.auth.split(":")[1]);
+
+console.log("feedID: " + getFeedID("https://www.relay.fm/analogue/feed"));
 
 /*****************************************/
 /* ROUTING															 */
@@ -175,14 +177,14 @@ function checkRSSFeed(hostURL, callback) {
  */
 function getFeedID(hostURL) {
 	var feedIDAllowedChars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMOPQRSTUVWXYZ';
-	var charLength = hostURL.length / ID_LENGTH;
+	var charLength = Math.floor(hostURL.length / ID_LENGTH);
 	var feedID = '';
 	for(var i = 0; i < ID_LENGTH; i++) {
 		var charCodeSum = 0;
 		for(var j = i; j < hostURL.length; j+= charLength) {
 			charCodeSum += hostURL.charCodeAt(j);
 		}
-		feedID.concat(charCodeSum % feedIDAllowedChars.length);
+		feedID = feedID.concat(feedIDAllowedChars[charCodeSum % feedIDAllowedChars.length]);
 	}
 	return feedID;
 }
