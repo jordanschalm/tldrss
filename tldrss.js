@@ -182,7 +182,7 @@ function getFeedID(hostURL) {
 		for(var j = i; j < hostURL.length; j+= charLength) {
 			charCodeSum += hostURL.charCodeAt(j);
 		}
-		feedID.concat(charCode % feedIDAllowedChars.length);
+		feedID.concat(charCodeSum % feedIDAllowedChars.length);
 	}
 	return feedID;
 }
