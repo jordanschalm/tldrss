@@ -85,7 +85,7 @@ app.get('/resources/:resource', function(req, res) {
 /* 	Path to access previously created feeds
  */
 app.get('/feed/:feedID', function(req, res) {
-	redisClient.hgetall(feedID, function(err, reply) {
+	redisClient.hgetall(req.params.feedID, function(err, reply) {
 		if(err) {
 			console.log(err.message)
 			send404(res);
