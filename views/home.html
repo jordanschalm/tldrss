@@ -96,7 +96,7 @@
 				<div class="col-xs-12 col-sm-8">
 					<div class="alert alert-success ng-hide" ng-show="feedCreated">
 						<a href="" class="close" aria-label="close" ng-click="feedCreated=false">&times;</a>
-					  <strong>Success!</strong> Your feed is available at <a href="{{feedID}}">{{'http://www.tldrss.heroku-app.com/feed/' + feedID + '/' + rule}}</a>
+					  <strong>Success!</strong> Your feed is available at <a href="{{'/feed/' + feedID + '/' + rule}}">{{'http://www.tldrss.heroku-app.com/feed/' + feedID + '/' + rule}}</a>
 					</div>
 					<div class="alert alert-danger ng-hide" ng-show="invalidHost">
 						<a href="" class="close" aria-label="clost" ng-click="invalidHost=false">&times;</a>
