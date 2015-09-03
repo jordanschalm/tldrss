@@ -4,20 +4,15 @@
 
 var DEFAULT_PORT = 3002;
 var ID_LENGTH = 6;
-var RESOURCES_ROOT = './resources/';
+var RESOURCES_ROOT = '/resources/';
 var FEED_ROOT = '/feed/'
-
-if(process.env.PORT)
-	var DOMAIN = 'https://tldrss.herokuapp.com';
-else
-	var DOMAIN = 'http://localhost:' + DEFAULT_PORT;
 
 /*****************************************/
 /* INITIALIZATION												 */
 /*****************************************/
 
-var fs = require('fs'),
-		url = require('url'),
+var url = require('url'),
+		path = require('path'),
 		mime = require('mime'),
 		http = require('http'),
 		express = require('express'),
@@ -26,15 +21,12 @@ var fs = require('fs'),
 		request = require('request'),
 		redis = require('redis'),
 		tldrss = require('./package.json');
-
+	
 var xmlParser = new xml2js.Parser();
 var xmlBuilder = new xml2js.Builder({cdata: "true"});
 
-// Set up Express to use Jade to render views
 var app = express();
-app.set('views', './views');
-app.set('view engine', 'jade');
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.json());
 
 var server = http.createServer(app)
 .listen(process.env.PORT || process.argv[2] || DEFAULT_PORT, function() {
@@ -46,47 +38,39 @@ var server = http.createServer(app)
 });
 
 // Create Redis client and connect to Heroku Redis datastore
-var redisURL = url.parse(process.env.REDIS_URL);
-var redisClient = redis.createClient(redisURL.port, redisURL.hostname);
-redisClient.auth(redisURL.auth.split(":")[1]);
-
-console.log("feedID: " + getFeedID("https://www.relay.fm/analogue/feed"));
+// var redisURL = url.parse(process.env.REDIS_URL);
+// var redisClient = redis.createClient(redisURL.port, redisURL.hostname);
+// redisClient.auth(redisURL.auth.split(":")[1]);
 
 /*****************************************/
 /* ROUTING															 */
 /*****************************************/
 
 app.get('/', function(req, res) {
-	res.render('home');
+	res.sendFile(path.join(__dirname + '/views/home.html'));
 });
 
 /* 	Path for things like favicon and site.css
  */
 app.get('/resources/:resource', function(req, res) {
-	var path = RESOURCES_ROOT + req.params.resource;
-	readFile(path, function(err, data) {
-		if(err) {
-			console.log(err.message);
-			send404(res, err.message);
-		}
-		else {
-			serveData(res, data, mime.lookup(path));
-		}
-	})
-})
+	var resPath = RESOURCES_ROOT + req.params.resource;
+	res.sendFile(path.join(__dirname + resPath));
+});
 
 /* 	Path to access previously created feeds
  */
-app.get('/feed/:feedID', function(req, res) {
-	redisClient.hgetall(req.params.feedID, function(err, reply) {
+app.get('/feed/:feedID/:rule', function(req, res) {
+	var feedID = req.params.feedID;
+	var rule = req.params.rule
+	redisClient.get(feedID, function(err, reply) {
 		if(err) {
 			console.log(err.message)
 			send404(res);
 		}
 		if(reply) {
-			request(reply.host, function(err, hostRes, body) {
+			request(reply, function(err, hostRes, body) {
 				if(!err && hostRes.statusCode === 200) {
-					applyRules(res, reply.rule, body, function(feedXML) {
+					applyRules(res, rule, body, function(feedXML) {
 						serveData(res, feedXML, "text/xml");
 					});
 				}
@@ -102,28 +86,24 @@ app.post('/create-feed', function(req, res) {
 	var host = req.body.host;
 	var rule = req.body.rule;
 	var feedID = getFeedID(host);
-	redisClient.hgetall(feedID, function(err, reply) {
+	var slug = feedID + '-' + rule;
+	redisClient.get(feedID, function(err, reply) {
 		if(err) {
 			console.log(err.message);
 		}
 		if(reply) {
-			// The key was found and the feed already exists
-			var feedURL = DOMAIN + FEED_ROOT + feedID;
-			renderCreateFeedPage(res, feedURL, true, true);
+			// The key was found so the feed exists
+			serveData(res, JSON.stringify({feedID: feedID, invalidHost: false}), "text/json");
 		}
 		else {
-			// The key was not found and we'll create the feed
+			// The key wasn't found so we'll create the feed
 			checkRSSFeed(host, function(isValid) {
 				if(isValid) {
-					redisClient.hmset(feedID, {
-						'host': host,
-						'rule': rule
-					});
-					var feedURL = DOMAIN + FEED_ROOT + feedID;
-					renderCreateFeedPage(res, feedURL, false, true);
+					redisClient.set(feedID, host);
+					serveData(res, JSON.stringify({feedID: feedID, invalidHost: false}), "text/json");
 				}
 				else {
-					renderCreateFeedPage(res, false, false, false);
+					serveData(res, JSON.stringify({feedID: null, invalidHost: true}), "text/json");
 				}
 			});
 		}
@@ -134,15 +114,11 @@ app.post('/create-feed', function(req, res) {
  */
 app.get('/*', function(req, res) {
 	send404(res);
-})
+});
 
 /*****************************************/
 /* HELPER FUNCTIONS											 */
 /*****************************************/
-
-function renderCreateFeedPage(res, feedURL, feedExists, hostFeedIsValid) {
-	res.render('create-feed', {url: feedURL, feedExists: feedExists, hostFeedIsValid: hostFeedIsValid});
-}
 
 /*	Checks to see whether an RSS feed responds
  *	with an XML file.
@@ -221,35 +197,5 @@ function applyRules(res, rule, body, callback) {
 			}
 		}
 		callback(xmlBuilder.buildObject(result));
-	});
-}
-
-/*****************************************/
-/* FILE I/O															 */
-/*****************************************/
-
-/*	Reads the file at the specified path, if it exists, and returns
- *	the contents of the file. This function is used after
- *	initialization is complete when we want things to happen
- *	asynchronously.
- *
- *	path (String)
- *	callback (function(err, data))
- */
-function readFile(path, callback) {
-	fs.exists(path, function(exists) {
-		if(exists) {
-			fs.readFile(path, function(err, data) {
-				if(err) {
-					callback(err, data);
-				}
-				else {
-					callback(null, data);
-				}
-			});
-		}
-		else {
-			callback(new Error("The file at path " + path + " does not exist."));
-		}
 	});
 }
