@@ -38,9 +38,9 @@ var server = http.createServer(app)
 });
 
 // Create Redis client and connect to Heroku Redis datastore
-// var redisURL = url.parse(process.env.REDIS_URL);
-// var redisClient = redis.createClient(redisURL.port, redisURL.hostname);
-// redisClient.auth(redisURL.auth.split(":")[1]);
+var redisURL = url.parse(process.env.REDIS_URL);
+var redisClient = redis.createClient(redisURL.port, redisURL.hostname);
+redisClient.auth(redisURL.auth.split(":")[1]);
 
 /*****************************************/
 /* ROUTING															 */
@@ -85,6 +85,7 @@ app.get('/feed/:feedID/:rule', function(req, res) {
 app.post('/create-feed', function(req, res) {
 	var host = req.body.host;
 	var rule = req.body.rule;
+	console.log('host: ' + host + '\trule: ' + rule);
 	var feedID = getFeedID(host);
 	var slug = feedID + '-' + rule;
 	redisClient.get(feedID, function(err, reply) {
