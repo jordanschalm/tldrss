@@ -87,7 +87,6 @@ app.post('/create-feed', function(req, res) {
 	var rule = req.body.rule;
 	console.log('host: ' + host + '\trule: ' + rule);
 	var feedID = getFeedID(host);
-	var slug = feedID + '-' + rule;
 	redisClient.get(feedID, function(err, reply) {
 		if(err) {
 			console.log(err.message);

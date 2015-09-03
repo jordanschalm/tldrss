@@ -1,102 +1,14 @@
-* {
-	padding: 0;
-	margin: 0;
-}
-
-html, body {
-	height: 100%;
-}
-
-div#page-content {
-	margin: 0 auto;
-	height: auto;
-	width: 100%;
-}
-
-div#home-text-container {
-	text-align: center;
-	margin: 0 auto;
-}
-
-@media(min-width: 720px) {
-	div#home-text-container {
-		width: 60%;
-	}
-	
-	h1 {
-		font-size: 48px;
-	}
-	
-	p, form {
-		text-align: center;
-		font-size: 18px;
-	}
-	
-	input, select {
-		font-size: 18px;
+@media(min-width: 768px) {
+	.spacer {
+		margin-top: 50px;
 	}
 }
-
-@media(max-width: 720px) {
-	div#home-text-container {
-		width: 90%;
-	}
-	
-	h1 {
-		font-size: 42px;
-	}
-	
-	p, form {
-		text-align: left;
-		font-size: 18px;
-	}
-	
-	input, select {
-		font-size: 16px;
+@media(max-width: 768px) {
+	.spacer {
+		margin-top: 10px;
 	}
 }
-
-h1 {
-	font-family: "Verdana", "Georgia", sans-serif;
-	font-weight: lighter;
-	text-align: center;
-	color: #ffffff;
-	padding-bottom: 0.5em;
-	padding-top: 0.5em;
-	background: #75AA9A;
-}
-
-p {
-	font-family: "Verdana", "Georgia", sans-serif;
-	font-weight: lighter;
-	line-height: 175%;
-	color: #454545;
-	padding-bottom: 1em;
-}
-
-form {
-	font-family: "Verdana", "Georgia", sans-serif;
-	font-weight: lighter;
-	line-height: 175%;
-	color: #454545;
-}
-
-input {
-	font-family: "Verdana", "Georgia", sans-serif;
-	font-weight: lighter;
-	text-align: left;
-	color: #454545;
-}
-
-input#host-feed-input {
-	box-sizing: border-box;
-	width: 40%;
-}
-
-select {
-	font-family: "Verdana", "Georgia", sans-serif;
-	font-weight: lighter;
-	text-align: left;
-	line-height: 150%;
-	color: #454545;
+.small-form {
+	width: auto;
+	display: inline-block;
 }
