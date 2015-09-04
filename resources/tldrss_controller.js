@@ -10,7 +10,7 @@ app.controller('tldrssCtrl', function($scope, $http) {
 				$scope.inputHostIsInvalid = response.inputHostIsInvalid;
 				if($scope.inputHostIsInvalid) {
 					// An error message with invalidHost appears
-					$scope.invalidHost = resHost;
+					$scope.invalidHost = $scope.resHost;
 				}
 				else {
 					// Add an entry in createdFeeds. The DOM will
