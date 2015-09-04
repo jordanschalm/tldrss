@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <title>Home</title>
+    <title>TLDRSS - Custom RSS Feeds</title>
 
     <!-- Bootstrap -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
@@ -32,7 +32,7 @@
     <![endif]-->
   </head>
 	<!-- Initialize rule=2 so the select appears properly -->
-  <body ng-app="tldrss_controller" ng-init="rule=2; feedCreated=false; urlIsValid=true" ng-controller="tldrssCtrl">
+  <body ng-app="tldrss_controller" ng-init="inputRule=2; createdFeeds=[];" ng-controller="tldrssCtrl">
 		<div class="container">
 			<div class="row spacer">
 				<div class="col-sm-2"></div>
@@ -75,8 +75,9 @@
 					  <strong>Success!</strong> Your feed is available at <a href="{{'/feed/' + feedID + '/' + rule}}">{{'http://www.tldrss.heroku-app.com/feed/' + feedID + '/' + rule}}</a>
 					</div>
 					<div class="alert alert-danger ng-hide" ng-show="invalidHost">
-						<a href="" class="close" aria-label="clost" ng-click="invalidHost=false">&times;</a>
+						<a href="" class="close" aria-label="close" ng-click="invalidHost=false">&times;</a>
 						<strong>Error!</strong> You have entered an invalid URL. Check your spelling and try again.
+					</div>
 				</div>
 				<div class="col-sm-2"></div>
 		</div><!-- .row -->

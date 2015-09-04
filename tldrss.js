@@ -86,28 +86,33 @@ app.post('/create-feed', function(req, res) {
 	var host = req.body.host;
 	var rule = req.body.rule;
 	console.log('host: ' + host + '\trule: ' + rule);
-	var feedID = getFeedID(host);
-	redisClient.get(feedID, function(err, reply) {
-		if(err) {
-			console.log(err.message);
-		}
-		if(reply) {
-			// The key was found so the feed exists
-			serveData(res, JSON.stringify({feedID: feedID, invalidHost: false}), "text/json");
-		}
-		else {
-			// The key wasn't found so we'll create the feed
-			checkRSSFeed(host, function(isValid) {
-				if(isValid) {
-					redisClient.set(feedID, host);
-					serveData(res, JSON.stringify({feedID: feedID, invalidHost: false}), "text/json");
-				}
-				else {
-					serveData(res, JSON.stringify({feedID: null, invalidHost: true}), "text/json");
-				}
-			});
-		}
-	});
+	if(!host) {
+		serveData(res, JSON.stringify({feedID: null, invalidHost: true}));
+	}
+	else {
+		var feedID = getFeedID(host);
+		redisClient.get(feedID, function(err, reply) {
+			if(err) {
+				console.log(err.message);
+			}
+			if(reply) {
+				// The key was found so the feed exists
+				serveData(res, JSON.stringify({feedID: feedID, invalidHost: false}), "text/json");
+			}
+			else {
+				// The key wasn't found so we'll create the feed
+				checkRSSFeed(host, function(isValid) {
+					if(isValid) {
+						redisClient.set(feedID, host);
+						serveData(res, JSON.stringify({feedID: feedID, invalidHost: false}), "text/json");
+					}
+					else {
+						serveData(res, JSON.stringify({feedID: null, invalidHost: true}), "text/json");
+					}
+				});
+			}
+		});
+	}
 });
 
 /*	Send a 404 response for any unrecognized paths
