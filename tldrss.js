@@ -86,10 +86,11 @@ app.post('/create-feed', function(req, res) {
 	var host = req.body.host;
 	var rule = req.body.rule;
 	console.log('host: ' + host + '\trule: ' + rule);
-	if(!host) {
+	if(!host || host.equals('')) {
 		serveData(res, JSON.stringify({feedID: null, inputHostIsInvalid: true, host: host, rule: rule}), "text/json");
 	}
 	else {
+		host = normalizeURL(host);
 		var feedID = getFeedID(host);
 		redisClient.get(feedID, function(err, reply) {
 			if(err) {
@@ -138,6 +139,22 @@ function checkRSSFeed(hostURL, callback) {
 		}
 		callback(false);
 	});
+}
+
+/*	If necessary appends http:// or
+ *	http://www. to a host URL. No guarantee
+ *	that the output URL is valid.
+ */
+function normalizeURL(host) {
+	if(host.match(/^http:\/\//)) {
+		return host;
+	}
+	else if(host.match(/^www/)) {
+		return 'http://' + host;
+	}
+	else {
+		return 'http://www.' + host;
+	}
 }
 
 /* Takes a host URL as input and hashes
