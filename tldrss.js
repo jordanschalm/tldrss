@@ -87,7 +87,7 @@ app.post('/create-feed', function(req, res) {
 	var rule = req.body.rule;
 	console.log('host: ' + host + '\trule: ' + rule);
 	if(!host) {
-		serveData(res, JSON.stringify({feedID: null, inputHostIsInvalid: true, host: host, rule: rule}));
+		serveData(res, JSON.stringify({feedID: null, inputHostIsInvalid: true, host: host, rule: rule}), "text/json");
 	}
 	else {
 		var feedID = getFeedID(host);
