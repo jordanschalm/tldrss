@@ -86,7 +86,7 @@ app.post('/create-feed', function(req, res) {
 	var host = req.body.host;
 	var rule = req.body.rule;
 	console.log('host: ' + host + '\trule: ' + rule);
-	if(!host || host.equals('')) {
+	if(!host) {
 		serveData(res, JSON.stringify({feedID: null, inputHostIsInvalid: true, host: host, rule: rule}), "text/json");
 	}
 	else {
