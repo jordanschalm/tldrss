@@ -71,12 +71,12 @@
 				<div class="col-sm-2"></div>
 				<div class="col-xs-12 col-sm-8">
 					<div class="alert alert-danger ng-hide" ng-show="inputHostIsInvalid">
-						<a href="" class="close" aria-label="close" >&times;</a>
+						<a href="" class="close" aria-label="close" ng-click="inputHostIsInvalid=false">&times;</a>
 						<strong>Error!</strong> {{ invalidHost }} is an invalid URL. Check your spelling and try again.
 					</div>
 					<div class="alert alert-success" ng-repeat="feed in createdFeeds">
 						<a href="" class="close" aria-label="close" ng-click="dismissNewFeedDialogue($index)">&times;</a>
-					  <strong>Success!</strong> Your feed is available at <a href="{{'/feed/' + feed.feedID + '/' + feed.rule}}">{{'http://www.tldrss.heroku-app.com/feed/' + feed.feedID + '/' + feed.rule}}</a>
+					  <strong>Success!</strong> Your feed for {{ feed.host }} is available at <a href="{{'/feed/' + feed.feedID + '/' + feed.rule}}">{{'http://www.tldrss.heroku-app.com/feed/' + feed.feedID + '/' + feed.rule}}</a>
 					</div>
 				</div>
 				<div class="col-sm-2"></div>
