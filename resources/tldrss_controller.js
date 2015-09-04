@@ -1,4 +1,4 @@
-var app = angular.module('tldrss', []);
+var app = angular.module('tldrss_controller', []);
 app.controller('tldrssCtrl', function($scope, $http) {
 	$scope.createFeed = function(host, rule) {
 		$http.post('/create-feed', {host: $scope.host, rule: $scope.rule})
