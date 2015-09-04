@@ -87,7 +87,7 @@ app.post('/create-feed', function(req, res) {
 	var rule = req.body.rule;
 	console.log('host: ' + host + '\trule: ' + rule);
 	if(!host) {
-		serveData(res, JSON.stringify({feedID: null, invalidHost: true}));
+		serveData(res, JSON.stringify({feedID: null, inputHostIsInvalid: true, host: host, rule: rule}));
 	}
 	else {
 		var feedID = getFeedID(host);
@@ -97,17 +97,17 @@ app.post('/create-feed', function(req, res) {
 			}
 			if(reply) {
 				// The key was found so the feed exists
-				serveData(res, JSON.stringify({feedID: feedID, invalidHost: false}), "text/json");
+				serveData(res, JSON.stringify({feedID: feedID, inputHostIsInvalid: false, host: host, rule: rule}), "text/json");
 			}
 			else {
 				// The key wasn't found so we'll create the feed
 				checkRSSFeed(host, function(isValid) {
 					if(isValid) {
 						redisClient.set(feedID, host);
-						serveData(res, JSON.stringify({feedID: feedID, invalidHost: false}), "text/json");
+						serveData(res, JSON.stringify({feedID: feedID, inputHostIsInvalid: false, host: host, rule: rule}), "text/json");
 					}
 					else {
-						serveData(res, JSON.stringify({feedID: null, invalidHost: true}), "text/json");
+						serveData(res, JSON.stringify({feedID: null, inputHostIsInvalid: true, host: host, rule: rule}), "text/json");
 					}
 				});
 			}

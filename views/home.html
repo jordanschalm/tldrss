@@ -44,7 +44,7 @@
 						  <div class="form-group">
 								<div class="controls form-inline">
 							    <label for="host">Host RSS feed URL:</label>
-							    <input required type="url" class="form-control small-form" ng-model="host" placeholder="http://..." autofocus="true">
+							    <input required type="url" class="form-control small-form" ng-model="inputHost" placeholder="http://..." autofocus="true">
 								</div>
 						  </div>
 						  <div class="form-group">
@@ -56,11 +56,11 @@
 										<option value="4">4th
 										<option value="5">5th
 									</select>
-									<label for="rule">&nbsp;episode.</label>
+									<label for="inputRule">&nbsp;episode.</label>
 								</div>
 						  </div>
 							<div class="form-group">
-						  	<button type="submit" class="btn btn-default" ng-click="createFeed(host, rule)">Create Feed</button>
+						  	<button type="submit" class="btn btn-default" ng-click="createFeed(inputHost, inputRule)">Create Feed</button>
 							</div>
 						</form>
 					</div>
@@ -70,13 +70,13 @@
 			<div class="row">
 				<div class="col-sm-2"></div>
 				<div class="col-xs-12 col-sm-8">
-					<div class="alert alert-success ng-hide" ng-show="feedCreated">
-						<a href="" class="close" aria-label="close" ng-click="feedCreated=false">&times;</a>
-					  <strong>Success!</strong> Your feed is available at <a href="{{'/feed/' + feedID + '/' + rule}}">{{'http://www.tldrss.heroku-app.com/feed/' + feedID + '/' + rule}}</a>
+					<div class="alert alert-danger ng-hide" ng-show="inputHostIsInvalid">
+						<a href="" class="close" aria-label="close" >&times;</a>
+						<strong>Error!</strong> {{ invalidHost }} is an invalid URL. Check your spelling and try again.
 					</div>
-					<div class="alert alert-danger ng-hide" ng-show="invalidHost">
-						<a href="" class="close" aria-label="close" ng-click="invalidHost=false">&times;</a>
-						<strong>Error!</strong> You have entered an invalid URL. Check your spelling and try again.
+					<div class="alert alert-success" ng-repeat="feed in createdFeeds">
+						<a href="" class="close" aria-label="close" ng-click="dismissNewFeedDialogue($index)">&times;</a>
+					  <strong>Success!</strong> Your feed is available at <a href="{{'/feed/' + feed.feedID + '/' + feed.rule}}">{{'http://www.tldrss.heroku-app.com/feed/' + feed.feedID + '/' + feed.rule}}</a>
 					</div>
 				</div>
 				<div class="col-sm-2"></div>
