@@ -76,8 +76,8 @@
 						<strong>Error!</strong> {{ invalidHost }} is an invalid URL. Check your spelling and try again.
 					</div>
 					<div class="alert alert-success" ng-repeat="feed in createdFeeds">
-						<a href="" class="close" aria-label="close" ng-click="dismissNewFeedDialogue($index)">&times;</a>
-					  <strong>Success!</strong> Your feed for {{ feed.host }} is available at <a href="{{'/feed/' + feed.feedID + '/' + feed.rule}}">{{'http://www.tldrss.heroku-app.com/feed/' + feed.feedID + '/' + feed.rule}}</a>. index: {{ $index }}
+						<a href="" class="close" aria-label="close" data-dismiss="alert" ng-click="dismissNewFeedDialogue($index)">&times;</a>
+					  <strong>Success!</strong> Your feed for {{ feed.host }} is available at <a href="{{'/feed/' + feed.feedID + '/' + feed.rule}}">{{'http://www.tldrss.heroku-app.com/feed/' + feed.feedID + '/' + feed.rule}}</a>
 					</div>
 				</div>
 				<div class="col-sm-2"></div>

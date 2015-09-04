@@ -28,6 +28,5 @@ app.controller('tldrssCtrl', function($scope, $http) {
 	 */
 	$scope.dismissNewFeedDialogue = function(index) {
 		delete $scope.createdFeeds[index];
-		$scope.apply();
 	}
 });
