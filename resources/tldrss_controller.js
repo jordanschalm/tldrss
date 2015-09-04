@@ -27,6 +27,6 @@ app.controller('tldrssCtrl', function($scope, $http) {
 	 *	element will automatically be removed.
 	 */
 	$scope.dismissNewFeedDialogue = function(index) {
-		delete $scope.createdFeeds[index];
+		$scope.createdFeeds.splice(index, 1);
 	}
 });
