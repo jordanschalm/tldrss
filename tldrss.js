@@ -120,8 +120,8 @@ app.post('/create-feed', function(req, res) {
 							serveData(res, JSON.stringify({feedID: feedID, host: host, rule: rule, err: false}), "text/json");
 						}
 						else if(httpStatusCode != 200) {
-							var resErr = new Error("Something went wrong while checking " + host + " for a valid RSS feed. The server responded with status code " + httpStatusCode ".");
-							serveData(res, JSON.stringify({feedID: feedID, host: host, rule: rule, err: reErr}));
+							var resErr = new Error("Something went wrong while checking " + host + " for a valid RSS feed. The server responded with status code " + httpStatusCode + ".");
+							serveData(res, JSON.stringify({feedID: feedID, host: host, rule: rule, err: resErr}));
 						}
 						else {
 							var resErr = new Error(host + " does not lead to a valid RSS feed. Please ensure the host URL leads to a valid RSS feed.");
