@@ -15,6 +15,7 @@ app.controller('tldrssCtrl', function($scope, $http) {
 				else {
 					// Add an entry in createdFeeds. The DOM will
 					// auto-update with a success message box
+					$scope.inputHostIsInvalid = false;
 					$scope.createdFeeds.push({host: $scope.resHost, rule: $scope.resRule, feedID: $scope.resFeedID});
 				}
 				// Reset inputs
