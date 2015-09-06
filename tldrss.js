@@ -94,7 +94,7 @@ app.post('/create-feed', function(req, res) {
 	else if(host.length === 0) {
 		// Empty host URL input
 		var resErr = new Error("Please enter a valid URL and try again.");
-		serveData(res, JSON.stringify({feedID: feedID, host: host, rule: rule, err: resErr}));
+		serveData(res, JSON.stringify({feedID: feedID, host: host, rule: rule, err: resErr}), "text/json");
 	}
 	else {
 		host = normalizeURL(host);
@@ -112,7 +112,7 @@ app.post('/create-feed', function(req, res) {
 					if(err) {
 						console.log(err);
 						var resErr = new Error("Something went wrong while checking " + host + " for a valid RSS feed. You may have entered an invalid URL or the host server may be temporarily unavailable. Please try again.");
-						serveData(res, JSON.stringify({feedID: feedID, host: host, rule: rule, err: resErr}));
+						serveData(res, JSON.stringify({feedID: feedID, host: host, rule: rule, err: resErr}), "text/json");
 					}
 					else {
 						if(validRSSFeed) {
@@ -121,11 +121,11 @@ app.post('/create-feed', function(req, res) {
 						}
 						else if(httpStatusCode != 200) {
 							var resErr = new Error("Something went wrong while checking " + host + " for a valid RSS feed. The server responded with status code " + httpStatusCode + ".");
-							serveData(res, JSON.stringify({feedID: feedID, host: host, rule: rule, err: resErr}));
+							serveData(res, JSON.stringify({feedID: feedID, host: host, rule: rule, err: resErr}), "text/json");
 						}
 						else {
 							var resErr = new Error(host + " does not lead to a valid RSS feed. Please ensure the host URL leads to a valid RSS feed.");
-							serveData(res, JSON.stringify({feedID: feedID, host: host, rule: rule, err: resErr}));
+							serveData(res, JSON.stringify({feedID: feedID, host: host, rule: rule, err: resErr}), "text/json");
 						}
 					}
 				});
