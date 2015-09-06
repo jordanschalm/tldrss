@@ -83,7 +83,6 @@ app.get('/feed/:feedID/:rule', function(req, res) {
 });
 
 app.post('/create-feed', function(req, res) {
-	console.log("hi");
 	var host = req.body.host;
 	var rule = req.body.rule;
 	console.log('host: ' + host + '\trule: ' + rule);
@@ -220,7 +219,8 @@ function send404(res, message) {
  */
 function serveData(res, data, mimeType) {
 	res.writeHead(200, {"Content-type" : mimeType});
-	res.end(data);
+	res.write(data);
+	res.end();
 }
 
 /*	Applies the rules for a particular feed to 
