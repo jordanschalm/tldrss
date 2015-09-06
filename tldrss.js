@@ -83,6 +83,7 @@ app.get('/feed/:feedID/:rule', function(req, res) {
 });
 
 app.post('/create-feed', function(req, res) {
+	console.log("hi");
 	var host = req.body.host;
 	var rule = req.body.rule;
 	console.log('host: ' + host + '\trule: ' + rule);
