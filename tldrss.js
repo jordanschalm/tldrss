@@ -88,8 +88,7 @@ app.post('/create-feed', function(req, res) {
 	console.log('host: ' + host + '\trule: ' + rule);
 	if(!host || !rule || host.length === 0) {
 		// Empty host URL or rule input
-		var resErr = new Error("Please enter a valid URL and try again.");
-		console.log("resErr: " + resErr);
+		var resErr = "Please enter a valid URL and try again.";
 		serveData(res, JSON.stringify({feedID: feedID, host: host, rule: rule, err: resErr}), "text/json");
 	}
 	else {
@@ -107,24 +106,20 @@ app.post('/create-feed', function(req, res) {
 				checkRSSFeed(host, function(validRSSFeed, httpStatusCode, err) {
 					if(err) {
 						console.log(err);
-						var resErr = new Error("Something went wrong while checking " + host + " for a valid RSS feed. You may have entered an invalid URL or the host server may be temporarily unavailable. Please try again.");
-						console.log("resErr: " + resErr);
+						var resErr = "Something went wrong while checking " + host + " for a valid RSS feed. You may have entered an invalid URL or the host server may be temporarily unavailable. Please try again.";
 						serveData(res, JSON.stringify({feedID: feedID, host: host, rule: rule, err: resErr}), "text/json");
 					}
 					else {
 						if(validRSSFeed) {
 							redisClient.set(feedID, host);
-							console.log("resErr: " + resErr);
 							serveData(res, JSON.stringify({feedID: feedID, host: host, rule: rule, err: false}), "text/json");
 						}
 						else if(httpStatusCode != 200) {
-							var resErr = new Error("Something went wrong while checking " + host + " for a valid RSS feed. The server responded with status code " + httpStatusCode + ".");
-							console.log("resErr: " + resErr);
+							var resErr = "Something went wrong while checking " + host + " for a valid RSS feed. The server responded with status code " + httpStatusCode + ".";
 							serveData(res, JSON.stringify({feedID: feedID, host: host, rule: rule, err: resErr}), "text/json");
 						}
 						else {
-							var resErr = new Error(host + " does not lead to a valid RSS feed. Please ensure the host URL leads to a valid RSS feed.");
-							console.log("resErr: " + resErr);
+							var resErr = host + " does not lead to a valid RSS feed. Please ensure the host URL leads to a valid RSS feed.";
 							serveData(res, JSON.stringify({feedID: feedID, host: host, rule: rule, err: resErr}), "text/json");
 						}
 					}
