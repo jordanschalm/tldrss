@@ -82,6 +82,10 @@ app.get('/feed/:feedID/:rule', function(req, res) {
 	});
 });
 
+//TODO Modularize this
+/*	Handles creation of new feeds and passes host, rule, feedID,
+ *	and an error message (if necessary) back to the client.
+ */
 app.post('/create-feed', function(req, res) {
 	var host = req.body.host;
 	var rule = req.body.rule;
@@ -224,7 +228,7 @@ function serveData(res, data, mimeType) {
  *	
  *	feed (Object)
  *	body (String) - unaltered XML content of the
- *									host feed
+ *		host feed
  *	callback (fn(String)) - parameter is the 
  *		altered XML text
  */

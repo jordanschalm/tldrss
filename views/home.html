@@ -32,7 +32,7 @@
     <![endif]-->
   </head>
 	<!-- Initialize rule=2 so the select appears properly -->
-  <body ng-app="tldrss_controller" ng-init="inputRule=2; createdFeeds=[];" ng-controller="tldrssCtrl">
+  <body ng-app="tldrss_controller" ng-init="inputRule=2; inputHostIsInvalid=false; createdFeeds=[];" ng-controller="tldrssCtrl">
 		<div class="container">
 			<div class="row spacer">
 				<div class="col-sm-2"></div>
@@ -40,6 +40,7 @@
 					<div class="jumbotron spacer" style="text-align: center">
 		    		<h1>Welcome</h2>
 						<p class="lead">Enter an RSS feed URL with your desired settings below and we'll create a custom feed.</p>
+						<p>inputHostIsInvalid: {{ inputHostIsInvalid }}</br>createdFeeds: {{ inputHostIsInvalid }}</p>
 						<form class="form-horizontal">
 						  <div class="form-group">
 								<div class="controls form-inline">
@@ -74,7 +75,7 @@
 						<a href="" class="close" aria-label="close" ng-click="inputHostIsInvalid=false">&times;</a>
 						<strong>Error!</strong> {{ resErr }}
 					</div>
-					<div class="alert alert-success" ng-repeat="feed in createdFeeds">
+					<div class="alert alert-success ng-hide" ng-repeat="feed in createdFeeds" ng-show="createdFeeds.length > 0">
 						<a href="" class="close" aria-label="close" data-dismiss="alert" ng-click="dismissNewFeedDialogue($index)">&times;</a>
 					  <strong>Success!</strong> Your feed for {{ feed.host }} is available at <a href="{{'/feed/' + feed.feedID + '/' + feed.rule}}">{{'http://www.tldrss.heroku-app.com/feed/' + feed.feedID + '/' + feed.rule}}</a>
 					</div>
