@@ -107,30 +107,8 @@ app.post('/create-feed', function(req, res) {
 				serveData(res, JSON.stringify({feedID: feedID, host: host, rule: rule, err: false}), "text/json");
 			}
 			else {
-				checkRSSFeed(host, function(validRSSFeed, httpStatusCode, err) {
-					if(err) {
-						console.log(err);
-						var resErr = "Something went wrong while checking " + host + " for a valid RSS feed. " +
-												 "You may have entered an invalid URL or the host server may be temporarily unavailable. Please try again.";
-						serveData(res, JSON.stringify({feedID: feedID, host: host, rule: rule, err: resErr}), "text/json");
-					}
-					else {
-						if(validRSSFeed) {
-							redisClient.set(feedID, host);
-							serveData(res, JSON.stringify({feedID: feedID, host: host, rule: rule, err: false}), "text/json");
-						}
-						else if(httpStatusCode != 200) {
-							var resErr = "Something went wrong while checking " + host + " for a valid RSS feed. " +
-													 "The server responded with status code " + httpStatusCode + ".";
-							serveData(res, JSON.stringify({feedID: feedID, host: host, rule: rule, err: resErr}), "text/json");
-						}
-						else {
-							var resErr = host + " does not lead to a valid RSS feed. " +
-													 "Please ensure the host URL leads to a valid RSS feed.";
-							serveData(res, JSON.stringify({feedID: feedID, host: host, rule: rule, err: resErr}), "text/json");
-						}
-					}
-				});
+				// The key was not found so create a new feed
+				serveData(res, createFeed(host, rule, feedID), "text/json");
 			}
 		});
 	}
@@ -145,6 +123,33 @@ app.get('/*', function(req, res) {
 /*****************************************/
 /* HELPER FUNCTIONS											 */
 /*****************************************/
+
+function createFeed(host, rule, feedID) {
+	checkRSSFeed(host, function(validRSSFeed, httpStatusCode, err) {
+		if(err) {
+			console.log(err);
+			var resErr = "Something went wrong while checking " + host + " for a valid RSS feed. " +
+									 "You may have entered an invalid URL or the host server may be temporarily unavailable. Please try again.";
+			return JSON.stringify({feedID: feedID, host: host, rule: rule, err: resErr});
+		}
+		else {
+			var resErr;
+			if(validRSSFeed) {
+				redisClient.set(feedID, host);
+				resErr = false;
+			}
+			else if(httpStatusCode != 200) {
+				resErr = "Something went wrong while checking " + host + " for a valid RSS feed. " +
+										 "The server responded with status code " + httpStatusCode + ".";
+			}
+			else {
+				resErr = host + " does not lead to a valid RSS feed. " +
+										 "Please ensure the host URL leads to a valid RSS feed.";
+			}
+			return JSON.stringify({feedID: feedID, host: host, rule: rule, err: resErr});
+		}
+	});
+}
 
 /*	Checks to see whether an RSS feed responds
  *	with an XML file.
@@ -206,12 +211,7 @@ function getFeedID(hostURL) {
  */
 function send404(res, message) {
 	res.writeHead(404, {"Content-type" : "text/plain"});
-	if(message) {
-		res.write("Error 404: " + message);
-	}
-	else {
-		res.write("Error 404: Resource not found.");
-	}
+	res.write("Error 404: " + (message || "Resource could not be found."));
 	res.end();
 }
 
