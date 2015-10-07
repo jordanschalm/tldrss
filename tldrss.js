@@ -4,6 +4,7 @@
 
 var DEFAULT_PORT = 3002;
 var ID_LENGTH = 6;
+var feedIDAllowedChars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMOPQRSTUVWXYZ';
 var RESOURCES_ROOT = '/resources/';
 var FEED_ROOT = '/feed/'
 
@@ -28,19 +29,20 @@ var xmlBuilder = new xml2js.Builder({cdata: "true"});
 var app = express();
 app.use(bodyParser.json());
 
-var server = http.createServer(app)
-.listen(process.env.PORT || process.argv[2] || DEFAULT_PORT, function() {
+var port = process.env.PORT || process.argv[2] || DEFAULT_PORT;
+var server = http.createServer(app).listen(port, function() {
 	console.log('TLDRSS v' + tldrss.version + ' running on port: %s', server.address().port);
-}).on('error', function(err) {
-	if(err.code === 'EADDRINUSE') {
-		console.log('Port ' + (process.env.PORT || process.argv[2] || ALT_PORT) + ' is in use. Exiting...');
-	}
 });
 
 // Create Redis client and connect to Heroku Redis datastore
-var redisURL = url.parse(process.env.REDIS_URL);
-var redisClient = redis.createClient(redisURL.port, redisURL.hostname);
-redisClient.auth(redisURL.auth.split(":")[1]);
+if(process.env.REDIS_URL) {
+	var redisURL = url.parse(process.env.REDIS_URL);
+	var redisClient = redis.createClient(redisURL.port, redisURL.hostname);
+	redisClient.auth(redisURL.auth.split(":")[1]);
+}
+else {
+	console.log("TLDRSS requires a Heroku Redis add-on.");
+}
 
 /*****************************************/
 /* ROUTING															 */
@@ -50,7 +52,7 @@ app.get('/', function(req, res) {
 	res.sendFile(path.join(__dirname + '/views/home.html'));
 });
 
-/* 	Path for things like favicon and site.css
+/* 	Path for site resources 
  */
 app.get('/resources/:resource', function(req, res) {
 	var resPath = RESOURCES_ROOT + req.params.resource;
@@ -82,14 +84,12 @@ app.get('/feed/:feedID/:rule', function(req, res) {
 	});
 });
 
-//TODO Modularize this
 /*	Handles creation of new feeds and passes host, rule, feedID,
  *	and an error message (if necessary) back to the client.
  */
 app.post('/create-feed', function(req, res) {
 	var host = req.body.host;
 	var rule = req.body.rule;
-	console.log('host: ' + host + '\trule: ' + rule);
 	if(!host || !rule || host.length === 0) {
 		// Empty host URL or rule input
 		var resErr = "Please enter a valid URL and try again.";
@@ -129,22 +129,22 @@ function createFeed(host, rule, feedID) {
 		if(err) {
 			console.log(err);
 			var resErr = "Something went wrong while checking " + host + " for a valid RSS feed. " +
-									 "You may have entered an invalid URL or the host server may be temporarily unavailable. Please try again.";
+									 "You may have entered an invalid URL or the host server may be temporarily unavailable. " +
+									 "Please try again.";
 			return JSON.stringify({feedID: feedID, host: host, rule: rule, err: resErr});
 		}
 		else {
-			var resErr;
+			var resErr = false;
 			if(validRSSFeed) {
 				redisClient.set(feedID, host);
-				resErr = false;
 			}
 			else if(httpStatusCode != 200) {
 				resErr = "Something went wrong while checking " + host + " for a valid RSS feed. " +
-										 "The server responded with status code " + httpStatusCode + ".";
+								 "The server responded with status code " + httpStatusCode + ".";
 			}
 			else {
 				resErr = host + " does not lead to a valid RSS feed. " +
-										 "Please ensure the host URL leads to a valid RSS feed.";
+								 "Please ensure the host URL leads to a valid RSS feed.";
 			}
 			return JSON.stringify({feedID: feedID, host: host, rule: rule, err: resErr});
 		}
@@ -154,6 +154,10 @@ function createFeed(host, rule, feedID) {
 /*	Checks to see whether an RSS feed responds
  *	with an XML file.
  *	hostURL (String) - URL of the host feed
+ *	callback (fn(bool valid, int httpRes, Error err)) - 
+ *		valid - true if the hostURL responds with an XML file,
+ *			false otherwise
+ *		httpRes - HTTP response code or null if an error occurs
  */
 function checkRSSFeed(hostURL, callback) {
 	request(hostURL, function(err, hostRes, body) {
@@ -194,7 +198,6 @@ function normalizeURL(host) {
  * hostURL (String)
  */
 function getFeedID(hostURL) {
-	var feedIDAllowedChars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMOPQRSTUVWXYZ';
 	var charLength = Math.floor(hostURL.length / ID_LENGTH);
 	var feedID = '';
 	for(var i = 0; i < ID_LENGTH; i++) {
