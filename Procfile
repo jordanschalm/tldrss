@@ -1,1 +1,1 @@
-web: node tldrss.js
+web: node index.js
